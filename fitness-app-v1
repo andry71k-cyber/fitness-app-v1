@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4d00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fitness Pro">>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Pro</title>
+
+<style>
+:root{
+  --bg:#0a0a0f;
+  --card:rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+  --text:#fff;
+  --muted:rgba(255,255,255,0.6);
+  --accent:#ff4d00;
+  --radius:18px;
+}
+
+body{
+  margin:0;
+  font-family:DM Sans, sans-serif;
+  background:var(--bg);
+  color:var(--text); <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log('Service Worker enregistré ✅'))
+    .catch(err => console.log('Erreur Service Worker:', err));
+}
+</script>
+}
+
+/* SCREENS */
+.screen{
+  display:none;
+  padding:18px;
+  padding-bottom:90px;
+}
+.screen.active{
+  display:block;
+}
+
+/* CARDS */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:12px;
+}
+
+/* TAB BAR */
+.tabbar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:70px;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(20px);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  border-top:1px solid var(--border);
+}
+
+.tabbar button{
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-size:22px;
+}
+
+/* CHAT */
+.msg{
+  padding:10px;
+  margin:6px 0;
+  border-radius:14px;
+}
+
+.user{background:var(--accent); color:#fff; align-self:flex-end;}
+.ai{background:var(--card);}
+
+/* INPUT */
+input{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+  <div class="card">💪 Fitness Pro</div>
+  <div class="card">📊 Poids : <span id="weight">102</span> kg</div>
+  <div class="card">🏆 Level : <span id="level">1</span></div>
+  <div class="card">🔥 XP : <span id="xp">0</span></div>
+</div>
+
+<!-- WORKOUT -->
+<div id="workout" class="screen">
+  <div class="card">🏋️ Lundi : Pompes / Squats / Gainage</div>
+  <div class="card">🏃 Mardi : Cardio 30 min</div>
+  <div class="card">🧘 Mercredi : Repos</div>
+  <div class="card">🔥 Jeudi : Circuit training</div>
+</div>
+
+<!-- PROGRESSION -->
+<div id="progress" class="screen">
+  <div class="card">📈 Progression globale</div>
+  <div class="card">Poids perdu : 0 kg</div>
+  <div class="card">Streak : 0 jours</div>
+</div>
+
+<!-- AI -->
+<div id="ai" class="screen">
+  <div class="card">🤖 Coach IA</div>
+  <div id="chat"></div>
+  <input id="input" placeholder="Pose ta question...">
+</div>
+
+<!-- TAB BAR -->
+<div class="tabbar">
+  <button onclick="show('home')">🏠</button>
+  <button onclick="show('workout')">🏋️</button>
+  <button onclick="show('progress')">📊</button>
+  <button onclick="show('ai')">🤖</button>
+</div>
+
+<script>
+
+/* STATE */
+let state = {
+  xp:0,
+  level:1,
+  streak:0,
+  weight:102
+};
+
+/* NAVIGATION */
+function show(id){
+  document.querySelectorAll('.screen')
+  .forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* LEVEL SYSTEM */
+function addXP(x){
+  state.xp += x;
+
+  if(state.xp >= state.level * 100){
+    state.level++;
+    state.xp = 0;
+    alert("🏆 Level up !");
+  }
+
+  updateUI();
+}
+
+/* UI UPDATE */
+function updateUI(){
+  document.getElementById("xp").innerText = state.xp;
+  document.getElementById("level").innerText = state.level;
+  document.getElementById("weight").innerText = state.weight;
+}
+
+/* IA SIMPLE */
+function askAI(msg){
+
+  let reply = "Continue comme ça 🔥";
+
+  if(state.level < 2){
+    reply = "Commence doucement et sois régulier.";
+  } else if(state.level < 5){
+    reply = "Tu progresses bien, augmente l'intensité.";
+  } else {
+    reply = "Excellent niveau, tu peux pousser plus fort.";
+  }
+
+  return reply;
+}
+
+/* CHAT */
+document.getElementById("input").addEventListener("keydown", (e)=>{
+  if(e.key === "Enter"){
+
+    let val = e.target.value;
+
+    let chat = document.getElementById("chat");
+
+    chat.innerHTML += `<div class="msg user">${val}</div>`;
+    chat.innerHTML += `<div class="msg ai">${askAI(val)}</div>`;
+
+    e.target.value = "";
+    addXP(10);
+  }
+});
+
+/* NOTIFICATIONS */
+if("Notification" in window){
+  Notification.requestPermission();
+}
+
+function notify(){
+  if(Notification.permission === "granted"){
+    new Notification("🔥 Ton entraînement t’attend !");
+  }
+}
+
+/* INIT */
+updateUI();
+
+</script>
+
+</body>
+</htmle>
